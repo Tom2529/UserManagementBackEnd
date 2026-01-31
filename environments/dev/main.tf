@@ -13,7 +13,7 @@ provider "aws" {
 }
 
 resource "aws_instance" "usermgmtbe" {
-  ami = "ami-0dba2cb6798deb6d8"  
+  ami = "ami-0290e60ec230db1e4"  
   instance_type = "t3.medium"
   
   user_data = <<-EOF
