@@ -26,7 +26,7 @@ resource "aws_instance" "usermgmtbe" {
   git clone -b security https://github.com/neerajbalodi/user-management-backend.git /home/ubuntu/user-management-backend 
   chown -R ubuntu:ubuntu /home/ubuntu/user-management-backend
   cd /home/ubuntu/user-management-backend
-  mvn clean install -DskipTests
+  sudo -u ubuntu bash -c "cd /home/ubuntu/user-management-backend && mvn clean install -DskipTests"
   EOF
 
   tags = {
