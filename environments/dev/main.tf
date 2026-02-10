@@ -12,6 +12,63 @@ provider "aws" {
   region = "us-west-1"  # Change this if needed
 }
 
+resource "aws_instance" "usermgmtbe" {
+  ami = "ami-0290e60ec230db1e4"  
+  instance_type = "t3.medium"
+  
+  #Make sure indentation is done property as shown below
+  user_data = <<-EOF
+  #!/bin/bash
+  sudo apt update -y
+  sudo apt install openjdk-21-jdk -y
+  sudo apt install maven -y
+  sudo apt install git -y  
+  EOF
+
+  tags = {
+    Name = "usermgmtbe"
+  }
+}
+
+# Output the public IP address of the EC2 instance
+output "usermgmtbe_public_ip" {
+  value = aws_instance.usermgmtbe.public_ip
+}
+
+resource "aws_instance" "usermgmtfe" {
+  ami           = "ami-0290e60ec230db1e4"  
+  instance_type = "t3.medium"
+  
+  # User data to install necessary software including Node.js, npm, and Angular CLI
+  user_data = <<-EOF
+  #!/bin/bash
+
+  # Update system
+  sudo apt update -y
+
+  # Install Node.js 20.x and npm
+  curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+  sudo apt install -y nodejs
+
+  # Install npm (if not already installed with Node.js)
+  sudo apt install -y npm
+
+  # Install Angular CLI globally
+  sudo npm install -g @angular/cli@20.3.7
+
+  EOF
+
+  tags = {
+    Name = "usermgmtfe"
+  }
+}
+
+# Output the public IP address of the EC2 instance
+output "usermgmtfe_public_ip" {
+  value = aws_instance.usermgmtfe.public_ip
+}
+
+
 resource "aws_instance" "usermgmtdb" {
   ami = "ami-0290e60ec230db1e4"  # Make sure this AMI has MySQL or is a base Linux AMI
   instance_type = "t3.medium"
