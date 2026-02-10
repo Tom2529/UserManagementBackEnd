@@ -12,24 +12,48 @@ provider "aws" {
   region = "us-west-1"  # Change this if needed
 }
 
-resource "aws_instance" "usermgmtbe" {
-  ami = "ami-0290e60ec230db1e4"  
+resource "aws_instance" "usermgmtdb" {
+  ami = "ami-0290e60ec230db1e4"  # Make sure this AMI has MySQL or is a base Linux AMI
   instance_type = "t3.medium"
   
-  #Make sure indentation is done property as shown below
+  # User data to install MySQL, modify config, and run SQL commands
   user_data = <<-EOF
   #!/bin/bash
+
+  # Update the system and install MySQL server
   sudo apt update -y
-  sudo apt install openjdk-21-jdk -y
-  sudo apt install maven -y
-  sudo apt install git -y
-  git clone -b security https://github.com/neerajbalodi/user-management-backend.git /home/ubuntu/user-management-backend 
-  chown -R ubuntu:ubuntu /home/ubuntu/user-management-backend
-  cd /home/ubuntu/user-management-backend
-  sudo -u ubuntu bash -c "cd /home/ubuntu/user-management-backend && mvn clean install -DskipTests"
+  sudo apt install mysql-server -y
+
+  # Start MySQL service
+  sudo systemctl start mysql
+  sudo systemctl enable mysql
+
+  # Modify MySQL config to allow connections from any host (0.0.0.0)
+  sudo sed -i 's/^bind-address\s*=.*$/bind-address = 0.0.0.0/' /etc/mysql/mysql.conf.d/mysqld.cnf
+  sudo sed -i 's/^mysqlx-bind-address\s*=.*$/mysqlx-bind-address = 0.0.0.0/' /etc/mysql/mysql.conf.d/mysqld.cnf
+
+  # Restart MySQL to apply config changes
+  sudo systemctl restart mysql
+
+  # Create MySQL admin user accessible from anywhere and grant privileges
+  sudo mysql -e "CREATE USER 'admin'@'%' IDENTIFIED BY 'admin';"
+  sudo mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'admin'@'%' WITH GRANT OPTION;"
+  sudo mysql -e "FLUSH PRIVILEGES;"
+
+  # Optionally, verify the new user
+  sudo mysql -e "SELECT user, host FROM mysql.user WHERE user = 'admin';"
+
+  # Exit MySQL
+  sudo mysql -e "EXIT;"
+
   EOF
 
   tags = {
-    Name = "usermgmtbe"
+    Name = "usermgmtdb"
   }
+}
+
+# Output the public IP address of the EC2 instance
+output "usermgmtdb_public_ip" {
+  value = aws_instance.usermgmtdb.public_ip
 }
