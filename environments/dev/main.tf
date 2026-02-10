@@ -68,10 +68,37 @@ output "usermgmtfe_public_ip" {
   value = aws_instance.usermgmtfe.public_ip
 }
 
+resource "aws_security_group" "usermgmtdb_sg" {
+  name        = "usermgmtdb_sg"
+  description = "Security group for MySQL access"
+  
+  # Allow inbound MySQL (3306) access from any IP address (0.0.0.0/0)
+  ingress {
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # This allows access from anywhere (unsafe in production)
+  }
+
+  # Allow outbound traffic (default is all traffic)
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "usermgmtdb_sg"
+  }
+}
+
 
 resource "aws_instance" "usermgmtdb" {
   ami = "ami-0290e60ec230db1e4"  # Make sure this AMI has MySQL or is a base Linux AMI
   instance_type = "t3.medium"
+  
+  security_groups = [aws_security_group.usermgmtdb_sg.name]
   
   # User data to install MySQL, modify config, and run SQL commands
   user_data = <<-EOF
