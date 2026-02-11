@@ -55,7 +55,7 @@ resource "aws_security_group" "usermgmtdb_sg" {
 
 resource "aws_instance" "usermgmtbe" {
   ami = var.ami
-  instance_type = vars.instance_type
+  instance_type = var.instance_type
   security_groups = [aws_security_group.usermgmtdb_sg.name]
   
   #Make sure indentation is done property as shown below
@@ -79,7 +79,7 @@ output "usermgmtbe_public_ip" {
 
 resource "aws_instance" "usermgmtfe" {
   ami = var.ami
-  instance_type = vars.instance_type  
+  instance_type = var.instance_type  
   security_groups = [aws_security_group.usermgmtdb_sg.name]
   
   # User data to install necessary software including Node.js, npm, and Angular CLI
@@ -113,7 +113,7 @@ output "usermgmtfe_public_ip" {
 
 resource "aws_instance" "usermgmtdb" {
   ami = var.ami
-  instance_type = vars.instance_type  
+  instance_type = var.instance_type  
   security_groups = [aws_security_group.usermgmtdb_sg.name]
   
   # User data to install MySQL, modify config, and run SQL commands
